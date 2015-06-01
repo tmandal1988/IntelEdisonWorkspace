@@ -1,0 +1,256 @@
+/*
+ * ADIS16485.cpp
+ *
+ *  Created on: May 27, 2015
+ *      Author: Tanmay
+ */
+
+#include "ADIS16485.h"
+#include "mraa.hpp"
+#include <iostream>
+#include <unistd.h>
+
+ADIS16485::ADIS16485() {
+
+	imuSPI = new mraa::Spi(0);
+
+	cs0 = mraa_gpio_init(23);
+
+	mraa_gpio_use_mmaped(cs0, 1);
+	mraa_gpio_write(cs0, 1);
+
+}
+
+int ADIS16485::initializeIMU() {
+
+	uint8_t page0ID[] = { 0x00, 0x80 };
+
+	if (imuSPI == NULL || imuSPI->mode(mraa::SPI_MODE3) != MRAA_SUCCESS
+			|| imuSPI->bitPerWord(16) != MRAA_SUCCESS
+			|| imuSPI->frequency(1000000) != MRAA_SUCCESS) {
+
+		std::cerr << "Can't initialize SPI" << std::endl;
+		return 0;
+	} else {
+
+		imuSPI->write(page0ID, 2);
+		return 1;
+	}
+
+}
+
+void ADIS16485::getIMUdataLowPrecision(float IMUdataLowPrecision[]) {
+
+	static uint8_t xghighc[] = { 0, xgyrohigh };
+	static uint8_t yghighc[] = { 0, ygyrohigh };
+	static uint8_t zghighc[] = { 0, zgyrohigh };
+	static uint8_t xahighc[] = { 0, xaccelhigh };
+	static uint8_t yahighc[] = { 0, yaccelhigh };
+	static uint8_t zahighc[] = { 0, zaccelhigh };
+
+	static uint8_t fake[] = { 0, 0 };
+
+	uint8_t recBuf[2] = { 0 };
+
+	byte2int16 convertRaw;
+
+	mraa_gpio_write(cs0, 0);
+	imuSPI->transfer(xghighc, NULL, 2);
+	imuSPI->transfer(fake, recBuf, 2);
+	mraa_gpio_write(cs0, 1);
+
+	convertRaw.byteArray[0] = recBuf[0];
+	convertRaw.byteArray[1] = recBuf[1];
+
+	IMUdataLowPrecision[0] = convertRaw.data * 0.02;
+
+	mraa_gpio_write(cs0, 0);
+	imuSPI->transfer(yghighc, NULL, 2);
+	imuSPI->transfer(fake, recBuf, 2);
+	mraa_gpio_write(cs0, 1);
+
+	convertRaw.byteArray[0] = recBuf[0];
+	convertRaw.byteArray[1] = recBuf[1];
+
+	IMUdataLowPrecision[1] = convertRaw.data * 0.02;
+
+	mraa_gpio_write(cs0, 0);
+	imuSPI->transfer(zghighc, NULL, 2);
+	imuSPI->transfer(fake, recBuf, 2);
+	mraa_gpio_write(cs0, 1);
+
+	convertRaw.byteArray[0] = recBuf[0];
+	convertRaw.byteArray[1] = recBuf[1];
+
+	IMUdataLowPrecision[2] = convertRaw.data * 0.02;
+
+	mraa_gpio_write(cs0, 0);
+	imuSPI->transfer(xahighc, NULL, 2);
+	imuSPI->transfer(fake, recBuf, 2);
+	mraa_gpio_write(cs0, 1);
+
+	convertRaw.byteArray[0] = recBuf[0];
+	convertRaw.byteArray[1] = recBuf[1];
+
+	IMUdataLowPrecision[3] = convertRaw.data * 0.00025;
+
+	mraa_gpio_write(cs0, 0);
+	imuSPI->transfer(yahighc, NULL, 2);
+	imuSPI->transfer(fake, recBuf, 2);
+	mraa_gpio_write(cs0, 1);
+
+	convertRaw.byteArray[0] = recBuf[0];
+	convertRaw.byteArray[1] = recBuf[1];
+
+	IMUdataLowPrecision[4] = convertRaw.data * 0.00025;
+
+	mraa_gpio_write(cs0, 0);
+	imuSPI->transfer(zahighc, NULL, 2);
+	imuSPI->transfer(fake, recBuf, 2);
+	mraa_gpio_write(cs0, 1);
+
+	convertRaw.byteArray[0] = recBuf[0];
+	convertRaw.byteArray[1] = recBuf[1];
+
+	IMUdataLowPrecision[5] = convertRaw.data * 0.00025;
+
+}
+
+void ADIS16485::getIMUdataHighPrecision(float IMUdataHighPrecision[]) {
+
+	static uint8_t xghighc[] = { 0, xgyrohigh };
+	static uint8_t xglowc[] = { 0, xgyrolow };
+
+	static uint8_t yghighc[] = { 0, ygyrohigh };
+	static uint8_t yglowc[] = { 0, ygyrolow };
+
+	static uint8_t zghighc[] = { 0, zgyrohigh };
+	static uint8_t zglowc[] = { 0, zgyrolow };
+
+	static uint8_t xahighc[] = { 0, xaccelhigh };
+	static uint8_t xalowc[] = { 0, xaccellow };
+
+	static uint8_t yahighc[] = { 0, yaccelhigh };
+	static uint8_t yalowc[] = { 0, yaccellow };
+
+	static uint8_t zahighc[] = { 0, zaccelhigh };
+	static uint8_t zalowc[] = { 0, zaccellow };
+
+	static uint8_t fake[] = { 0, 0 };
+
+	uint8_t recBuf[2] = { 0 };
+
+	byte2int32 convertRaw;
+
+	mraa_gpio_write(cs0, 0);
+	imuSPI->transfer(xglowc, NULL, 2);
+	imuSPI->transfer(fake, recBuf, 2);
+	mraa_gpio_write(cs0, 1);
+
+	convertRaw.byteArray[0] = recBuf[0];
+	convertRaw.byteArray[1] = recBuf[1];
+
+	mraa_gpio_write(cs0, 0);
+	imuSPI->transfer(xghighc, NULL, 2);
+	imuSPI->transfer(fake, recBuf, 2);
+	mraa_gpio_write(cs0, 1);
+
+	convertRaw.byteArray[2] = recBuf[0];
+	convertRaw.byteArray[3] = recBuf[1];
+
+	IMUdataHighPrecision[0] = convertRaw.data * 3.0518e-07;
+
+	mraa_gpio_write(cs0, 0);
+	imuSPI->transfer(yglowc, NULL, 2);
+	imuSPI->transfer(fake, recBuf, 2);
+	mraa_gpio_write(cs0, 1);
+
+	convertRaw.byteArray[0] = recBuf[0];
+	convertRaw.byteArray[1] = recBuf[1];
+
+	mraa_gpio_write(cs0, 0);
+	imuSPI->transfer(yghighc, NULL, 2);
+	imuSPI->transfer(fake, recBuf, 2);
+	mraa_gpio_write(cs0, 1);
+
+	convertRaw.byteArray[2] = recBuf[0];
+	convertRaw.byteArray[3] = recBuf[1];
+
+	IMUdataHighPrecision[1] = convertRaw.data * 3.0518e-07;
+
+	mraa_gpio_write(cs0, 0);
+	imuSPI->transfer(zglowc, NULL, 2);
+	imuSPI->transfer(fake, recBuf, 2);
+	mraa_gpio_write(cs0, 1);
+
+	convertRaw.byteArray[0] = recBuf[0];
+	convertRaw.byteArray[1] = recBuf[1];
+
+	mraa_gpio_write(cs0, 0);
+	imuSPI->transfer(zghighc, NULL, 2);
+	imuSPI->transfer(fake, recBuf, 2);
+	mraa_gpio_write(cs0, 1);
+
+	convertRaw.byteArray[2] = recBuf[0];
+	convertRaw.byteArray[3] = recBuf[1];
+
+	IMUdataHighPrecision[2] = convertRaw.data * 3.0518e-07;
+
+	mraa_gpio_write(cs0, 0);
+	imuSPI->transfer(xalowc, NULL, 2);
+	imuSPI->transfer(fake, recBuf, 2);
+	mraa_gpio_write(cs0, 1);
+
+	convertRaw.byteArray[0] = recBuf[0];
+	convertRaw.byteArray[1] = recBuf[1];
+
+	mraa_gpio_write(cs0, 0);
+	imuSPI->transfer(xahighc, NULL, 2);
+	imuSPI->transfer(fake, recBuf, 2);
+	mraa_gpio_write(cs0, 1);
+
+	convertRaw.byteArray[2] = recBuf[0];
+	convertRaw.byteArray[3] = recBuf[1];
+
+	IMUdataHighPrecision[3] = convertRaw.data * 3.8147e-09;
+
+	mraa_gpio_write(cs0, 0);
+	imuSPI->transfer(yalowc, NULL, 2);
+	imuSPI->transfer(fake, recBuf, 2);
+	mraa_gpio_write(cs0, 1);
+
+	convertRaw.byteArray[0] = recBuf[0];
+	convertRaw.byteArray[1] = recBuf[1];
+
+	mraa_gpio_write(cs0, 0);
+	imuSPI->transfer(yahighc, NULL, 2);
+	imuSPI->transfer(fake, recBuf, 2);
+	mraa_gpio_write(cs0, 1);
+
+	convertRaw.byteArray[2] = recBuf[0];
+	convertRaw.byteArray[3] = recBuf[1];
+
+	IMUdataHighPrecision[4] = convertRaw.data * 3.8147e-09;
+
+	mraa_gpio_write(cs0, 0);
+	imuSPI->transfer(zalowc, NULL, 2);
+	imuSPI->transfer(fake, recBuf, 2);
+	mraa_gpio_write(cs0, 1);
+
+	convertRaw.byteArray[0] = recBuf[0];
+	convertRaw.byteArray[1] = recBuf[1];
+
+	mraa_gpio_write(cs0, 0);
+	imuSPI->transfer(zahighc, NULL, 2);
+	imuSPI->transfer(fake, recBuf, 2);
+	mraa_gpio_write(cs0, 1);
+
+	convertRaw.byteArray[2] = recBuf[0];
+	convertRaw.byteArray[3] = recBuf[1];
+
+	IMUdataHighPrecision[5] = convertRaw.data * 3.8147e-09;
+}
+
+
+
+

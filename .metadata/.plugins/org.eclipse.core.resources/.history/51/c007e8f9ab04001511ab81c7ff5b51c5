@@ -1,0 +1,20 @@
+
+#include "mraa.hpp"
+#include <iostream>
+#include <unistd.h>
+#include <thread>
+
+int running = 0;
+
+void sig_handler(int signo) {
+	if (signo == SIGINT) {
+		printf("closing spi nicely\n");
+		running = -1;
+	}
+}
+
+int main() {
+
+	signal(SIGINT, sig_handler);
+	return MRAA_SUCCESS;
+}

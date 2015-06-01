@@ -1,0 +1,47 @@
+/*
+ * ADIS16485.h
+ *
+ *  Created on: May 26, 2015
+ *      Author: Tanmay
+ */
+
+
+#ifndef ADIS16485_H_
+#define ADIS16485_H_
+
+#include "mraa.hpp"
+
+class ADIS16485{
+private:
+	static const uint8_t xgyrolow=0x10;
+	static const uint8_t xgyrohigh=0x12;
+	static const uint8_t ygyrolow=0x14;
+	static const uint8_t ygyrohigh=0x16;
+	static const uint8_t zgyrolow=0x18;
+	static const uint8_t zgyrohigh=0x1A;
+
+	static const uint8_t xaccellow=0x10;
+	static const uint8_t xaccelhigh=0x10;
+	static const uint8_t yaccellow=0x10;
+	static const uint8_t yaccelhigh=0x10;
+	static const uint8_t zaccellow=0x10;
+	static const uint8_t zaccelhigh=0x10;
+
+	mraa::Spi* imuSPI=NULL;
+
+	mraa_gpio_context cs0;
+
+	static const uint8_t imuLowPrecisionCommand[]={xgyrohigh,0,ygyrohigh,0,zgyrohigh,0,xaccelhigh,0,yaccelhigh,0,zaccelhigh,0};
+
+
+public:
+	ADIS16485();
+	int initializeIMU();
+	void getIMUdataLowPrecision(float IMUdataLowPrecision[]);
+	void getIMUdataHighPrecision(double IMUdataHighPrecision[]);
+	~ADIS16485();
+};
+
+
+
+#endif /* ADIS16485_H_ */

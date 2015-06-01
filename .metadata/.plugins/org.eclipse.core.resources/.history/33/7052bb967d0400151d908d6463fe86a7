@@ -1,0 +1,54 @@
+/*
+ * ADIS16485.cpp
+ *
+ *  Created on: May 27, 2015
+ *      Author: Tanmay
+ */
+
+#include "ADIS16485.h"
+#include "mraa.hpp"
+#include <iostream>
+#include <unistd.h>
+
+ADIS16485::ADIS16485(){
+
+	mraa::Spi* imuSPI= new mraa::Spi(0);
+
+	cs0 = mraa_gpio_init(23);
+
+	mraa_gpio_use_mmaped(cs0, 1);
+	mraa_gpio_write(cs0, 1);
+
+}
+
+int ADIS16485::initializeIMU(){
+
+	if (imuSPI==NULL || imuSPI->mode(mraa::SPI_MODE3) != MRAA_SUCCESS
+			|| imuSPI->bitPerWord(16) != MRAA_SUCCESS
+			|| imuSPI->frequency(1000000) != MRAA_SUCCESS) {
+
+		std::cerr << "Can't initialize SPI" << std::endl;
+		return 0;
+	}
+	else
+		return 1;
+}
+
+void ADIS16485::getIMUdataLowPrecision(float IMUdataLowPrecision[]){
+
+	uint8_t imuRaw[12]={0};
+	byte2int16 convertRaw;
+
+	mraa_gpio_write(cs0,0);
+	imuSPI->transfer(imuLowPrecisionCommand,imuRaw,12);
+
+	convertRaw.byteArray[0]=imuRaw[10];
+	convertRaw.byteArray[1]=imuRaw[11];
+
+
+
+
+
+}
+
+

@@ -1,0 +1,80 @@
+/*
+ * ADIS16485.cpp
+ *
+ *  Created on: May 27, 2015
+ *      Author: Tanmay
+ */
+
+#include "ADIS16485.h"
+#include "mraa.hpp"
+#include <iostream>
+#include <unistd.h>
+
+ADIS16485::ADIS16485(){
+
+	imuSPI= new mraa::Spi(0);
+
+
+	cs0 = mraa_gpio_init(23);
+
+	mraa_gpio_use_mmaped(cs0, 1);
+	mraa_gpio_write(cs0, 1);
+
+}
+
+int ADIS16485::initializeIMU(){
+
+	uint8_t page0ID[]={0x00,0x80};
+
+
+	if (imuSPI==NULL || imuSPI->mode(mraa::SPI_MODE3) != MRAA_SUCCESS
+			|| imuSPI->bitPerWord(16) != MRAA_SUCCESS
+			|| imuSPI->frequency(1000000) != MRAA_SUCCESS) {
+
+		std::cerr << "Can't initialize SPI" << std::endl;
+		return 0;
+	}
+	else{
+
+		imuSPI->write(page0ID,2);
+		return 1;
+	}
+
+}
+
+void ADIS16485::getIMUdataLowPrecision(float IMUdataLowPrecision[]){
+
+	uint8_t imuRaw[12]={0};
+	//static uint8_t imuLowPrecisionCommand[2]={0,xgyrohigh,0,ygyrohigh,0,zgyrohigh,0,xaccelhigh,0,yaccelhigh,0,zaccelhigh};
+	static uint8_t imuLowPrecisionCommand[]={0,zgyrohigh,0,xaccelhigh,0,yaccelhigh,0,zaccelhigh};
+	byte2int16 convertRaw;
+
+	mraa_gpio_write(cs0,0);
+	imuSPI->transfer(imuLowPrecisionCommand,imuRaw,8);
+	mraa_gpio_write(cs0,1);
+
+	convertRaw.byteArray[0]=imuRaw[0];
+	convertRaw.byteArray[1]=imuRaw[1];
+
+	IMUdataLowPrecision[2]=convertRaw.data*0.02;
+
+	convertRaw.byteArray[0]=imuRaw[2];
+	convertRaw.byteArray[1]=imuRaw[3];
+
+	IMUdataLowPrecision[3]=convertRaw.data*0.00025;
+
+	convertRaw.byteArray[0]=imuRaw[4];
+	convertRaw.byteArray[1]=imuRaw[5];
+
+	IMUdataLowPrecision[4]=convertRaw.data*0.00025;
+
+
+	convertRaw.byteArray[0]=imuRaw[6];
+	convertRaw.byteArray[1]=imuRaw[7];
+
+	IMUdataLowPrecision[5]=convertRaw.data*0.00025;
+
+
+}
+
+

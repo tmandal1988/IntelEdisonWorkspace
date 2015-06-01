@@ -1,0 +1,78 @@
+/*Tanmay Kumar Mandal
+ * Data: 05/20/2015
+ * Testing the SPI functionality
+ */
+
+#include "ADIS16485.h"
+#include <signal.h>
+#include <eigen3/Eigen/Dense>
+#include <thread>
+
+
+
+using namespace Eigen;
+
+int running = 0;
+
+void sig_handler(int signo) {
+	if (signo == SIGINT) {
+		printf("closing spi nicely\n");
+		running = -1;
+	}
+}
+
+void readSerial(){
+
+	std::cout<<"Serial Reading Thread created"<<std::endl;
+	mraa::Uart* serial1=new mraa::Uart(0);
+	serial1->setBaudRate(115200);
+	//GPSserial->setMode(8,MRAA_UART_PARITY_NONE,1);
+
+
+}
+
+
+int main() {
+
+	signal(SIGINT, sig_handler);
+
+	std::thread readSerialThread(readSerial);
+
+
+	mraa::Gpio* ledOut = new mraa::Gpio(48, true, false);
+	if (ledOut->dir(mraa::DIR_OUT) != MRAA_SUCCESS) {
+		std::cerr << "Can't set digital pin as output, exiting" << std::endl;
+		return MRAA_ERROR_UNSPECIFIED;
+	}
+
+	ADIS16485* imuObject = new ADIS16485();
+
+	if (imuObject->initializeIMU() == 0)
+		return MRAA_ERROR_UNSPECIFIED;
+
+	ledOut->write(1);
+
+	float IMUdataLowPrecision[6] = { 0 };
+	float IMUdataHighPrecision[6] = { 0 };
+	float IMUdeltaDataLowPrecision[6] = { 0 };
+
+	while (running==0) {
+
+		imuObject->getIMUdataLowPrecision(IMUdataLowPrecision);
+		/*printf("%g, %g, %g, %g, %g, %g \n", IMUdataLowPrecision[0],
+				IMUdataLowPrecision[1], IMUdataLowPrecision[2],
+				IMUdataLowPrecision[3], IMUdataLowPrecision[4],
+				IMUdataLowPrecision[5]);
+*/
+		imuObject->getIMUdataHighPrecision(IMUdataHighPrecision);
+/*		printf("%g, %g, %g, %g, %g, %g \n", IMUdataHighPrecision[0],
+				IMUdataHighPrecision[1], IMUdataHighPrecision[2],
+				IMUdataHighPrecision[3], IMUdataHighPrecision[4],
+				IMUdataHighPrecision[5]);*/
+
+	}
+
+
+
+	return MRAA_SUCCESS;
+}

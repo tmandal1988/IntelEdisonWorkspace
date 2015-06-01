@@ -1,0 +1,42 @@
+/*Tanmay Kumar Mandal
+ * Data: 05/20/2015
+ * Testing the SPI functionality
+ */
+
+#include "mraa.hpp"
+
+#include <iostream>
+#include <unistd.h>
+#include "ADIS16485.h"
+
+
+int main() {
+
+	mraa::Gpio* ledOut = new mraa::Gpio(48, true, false);
+	if (ledOut->dir(mraa::DIR_OUT) != MRAA_SUCCESS) {
+		std::cerr << "Can't set digital pin as output, exiting" << std::endl;
+		return MRAA_ERROR_UNSPECIFIED;
+	}
+
+	ADIS16485* imuObject=new ADIS16485();
+
+	if(imuObject->initializeIMU()==0)
+		return MRAA_ERROR_UNSPECIFIED;
+
+
+	static uint8_t SPI_command[] = { 0x00, 0x26 };
+
+	uint8_t* rcvBuf;
+	ledOut->write(1);
+
+	while (1) {
+
+		if(rcvBuf){
+			float Az = 0.00025 * (short int) (rcvBuf[1] * 256 + rcvBuf[0]);
+			printf("%g \n", Az);
+		}
+
+	}
+
+	return MRAA_SUCCESS;
+}

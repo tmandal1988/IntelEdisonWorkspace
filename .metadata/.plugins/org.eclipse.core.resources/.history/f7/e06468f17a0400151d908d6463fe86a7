@@ -1,0 +1,26 @@
+/*
+ * ADIS16485.cpp
+ *
+ *  Created on: May 27, 2015
+ *      Author: Tanmay
+ */
+
+#include "ADIS16485.h"
+#include "mraa.hpp"
+#include <iostream>
+#include <unistd.h>
+
+ADIS16485::ADIS16485(){
+
+	mraa::Spi* imuSPI= new mraa::Spi(0);
+
+	if (imuSPI->mode(mraa::SPI_MODE3) != MRAA_SUCCESS
+			|| imuSPI->bitPerWord(16) != MRAA_SUCCESS
+			|| imuSPI->frequency(1000000) != MRAA_SUCCESS) {
+
+		std::cerr << "Can't set SPI 0" << std::endl;
+		return MRAA_ERROR_UNSPECIFIED;
+	}
+}
+
+

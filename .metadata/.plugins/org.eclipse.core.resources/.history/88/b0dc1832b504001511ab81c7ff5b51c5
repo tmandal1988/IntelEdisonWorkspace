@@ -1,0 +1,74 @@
+/*Tanmay Kumar Mandal
+ * Data: 05/20/2015
+ * Testing the SPI functionality
+ */
+
+#include "ADIS16485.h"
+#include <signal.h>
+#include <armadillo>
+
+
+int running = 0;
+
+void sig_handler(int signo) {
+	if (signo == SIGINT) {
+		printf("closing spi nicely\n");
+		running = -1;
+	}
+}
+
+
+int main() {
+
+	signal(SIGINT, sig_handler);
+
+	arma::mat A(2,3);  // directly specify the matrix size (elements are uninitialised)
+
+	  A << 0.165300 << 0.454037 << 0.995795 << 0.124098 << 0.047084 << arma::endr
+	    << 0.688782 << 0.036549 << 0.552848 << 0.937664 << 0.866401 << arma::endr
+	    << 0.348740 << 0.479388 << 0.506228 << 0.145673 << 0.491547 << arma::endr
+	    << 0.148678 << 0.682258 << 0.571154 << 0.874724 << 0.444632 << arma::endr
+	    << 0.245726 << 0.595218 << 0.409327 << 0.367827 << 0.385736 << arma::endr;
+
+	  A.print("A:");
+	  std::cout<<A.t()<<std::endl;
+
+
+
+	mraa::Gpio* ledOut = new mraa::Gpio(48, true, false);
+	if (ledOut->dir(mraa::DIR_OUT) != MRAA_SUCCESS) {
+		std::cerr << "Can't set digital pin as output, exiting" << std::endl;
+		return MRAA_ERROR_UNSPECIFIED;
+	}
+
+	ADIS16485* imuObject = new ADIS16485();
+
+	if (imuObject->initializeIMU() == 0)
+		return MRAA_ERROR_UNSPECIFIED;
+
+	ledOut->write(1);
+
+	float IMUdataLowPrecision[6] = { 0 };
+	float IMUdataHighPrecision[6] = { 0 };
+	float IMUdeltaDataLowPrecision[6] = { 0 };
+
+	while (running==0) {
+
+		imuObject->getIMUdataLowPrecision(IMUdataLowPrecision);
+		printf("%g, %g, %g, %g, %g, %g \n", IMUdataLowPrecision[0],
+				IMUdataLowPrecision[1], IMUdataLowPrecision[2],
+				IMUdataLowPrecision[3], IMUdataLowPrecision[4],
+				IMUdataLowPrecision[5]);
+
+		imuObject->getIMUdataHighPrecision(IMUdataHighPrecision);
+		printf("%g, %g, %g, %g, %g, %g \n", IMUdataHighPrecision[0],
+				IMUdataHighPrecision[1], IMUdataHighPrecision[2],
+				IMUdataHighPrecision[3], IMUdataHighPrecision[4],
+				IMUdataHighPrecision[5]);
+
+	}
+
+	delete imuObject;
+
+	return MRAA_SUCCESS;
+}

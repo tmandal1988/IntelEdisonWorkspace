@@ -1,0 +1,19 @@
+/*
+ * ADIS16485.h
+ *
+ *  Created on: May 26, 2015
+ *      Author: Tanmay
+ */
+
+#ifndef ADIS16485_H_
+#define ADIS16485_H_
+
+class ADIS16485{
+private:
+	static const uint8_t xgyrolow=0x10;
+
+};
+
+
+
+#endif /* ADIS16485_H_ */

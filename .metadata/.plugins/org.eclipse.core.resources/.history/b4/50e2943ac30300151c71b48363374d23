@@ -1,0 +1,56 @@
+/*Tanmay Kumar Mandal
+ * Data: 05/20/2015
+ * Testing the SPI functionality
+ */
+
+#include "mraa.hpp"
+
+#include <iostream>
+#include <unistd.h>
+
+
+int main() {
+
+	mraa::Gpio* cs0=new mraa::Gpio(23,true, false);
+	mraa::Gpio* ledOut=new mraa::Gpio(48,true,false);
+
+	// set the pin as cs0
+	if (cs0->dir(mraa::DIR_OUT) != MRAA_SUCCESS) {
+		std::cerr << "Can't set digital pin as cs0, exiting" << std::endl;
+		return MRAA_ERROR_UNSPECIFIED;
+	}
+
+	if (ledOut->dir(mraa::DIR_OUT) != MRAA_SUCCESS) {
+		std::cerr << "Can't set digital pin as output, exiting" << std::endl;
+		return MRAA_ERROR_UNSPECIFIED;
+	}
+
+	mraa::Spi* IMU = new mraa::Spi(0);
+	if (IMU->mode(mraa::SPI_MODE3) != MRAA_SUCCESS
+			|| IMU->bitPerWord(16) != MRAA_SUCCESS
+			|| IMU->frequency(1000000) != MRAA_SUCCESS) {
+
+		std::cerr << "Can't set SPI 0" << std::endl;
+		return MRAA_ERROR_UNSPECIFIED;
+	}
+
+	static uint8_t SPI_command[] = { 0x12, 0x00 };
+
+	uint8_t* rcvBuf;
+
+	while (1) {
+
+		cs0->write(0);
+		ledOut->write(1);
+		rcvBuf=IMU->write(SPI_command, 2);
+		usleep(200);
+		cs0->write(1);
+		ledOut->write(0);
+		usleep(200);
+
+		printf("%i %i \n",rcvBuf[0],rcvBuf[1]);
+
+	}
+
+	return MRAA_SUCCESS;
+}

@@ -1,0 +1,7 @@
+07:19:19 **** Rebuild of configuration Debug for project exampleDIN ****
+Info: Internal Builder is used for build
+i586-poky-linux-g++ "-IC:\\Intel\\iotdk-ide-win\\devkit-x86\\sysroots\\i586-poky-linux/usr/include/upm" "-IC:\\Intel\\iotdk-ide-win\\devkit-x86\\sysroots\\i586-poky-linux/usr/include/mraa" -O0 -g3 -Wall -c -fmessage-length=0 "--sysroot=C:\\Intel\\iotdk-ide-win\\devkit-x86\\sysroots\\i586-poky-linux" -m32 -march=i586 -c -ffunction-sections -fdata-sections -o "src\\exampleDIN.o" "..\\src\\exampleDIN.cpp" 
+i586-poky-linux-g++ "--sysroot=C:\\Intel\\iotdk-ide-win\\devkit-x86\\sysroots\\i586-poky-linux" -lmraa -o exampleDIN "src\\exampleDIN.o" 
+
+07:19:20 Build Finished (took 749ms)
+

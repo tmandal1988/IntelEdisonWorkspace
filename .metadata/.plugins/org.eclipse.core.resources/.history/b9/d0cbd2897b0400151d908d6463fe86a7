@@ -1,0 +1,19 @@
+/*
+ * ADIS16485.cpp
+ *
+ *  Created on: May 27, 2015
+ *      Author: Tanmay
+ */
+
+#include "ADIS16485.h"
+#include "mraa.hpp"
+#include <iostream>
+#include <unistd.h>
+
+ADIS16485::ADIS16485(){
+
+	mraa::Spi* imuSPI= new mraa::Spi(0);
+
+}
+
+
